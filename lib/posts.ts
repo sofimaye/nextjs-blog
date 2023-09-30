@@ -6,7 +6,13 @@ import { remark } from 'remark';
 
 const postsDirectory = path.join(process.cwd(), 'posts');
 
-export function getSortedPostsData() {
+export type PostsData = {
+    id: string,
+    date: string,
+    title: string
+}[];
+
+export function getSortedPostsData(): PostsData{
     // Get file names under /posts
     const fileNames = fs.readdirSync(postsDirectory);
     const allPostsData = fileNames.map((fileName) => {
@@ -23,7 +29,7 @@ export function getSortedPostsData() {
         // Combine the data with the id
         return {
             id,
-            ...matterResult.data,
+            ...(matterResult.data as {date: string; title:string}),
         };
     });
 
@@ -61,8 +67,14 @@ export function getAllPostIds() {
     });
 }
 
+export type Posts = {
+    id: string,
+    date: string,
+    title: string,
+    contentHtml: string
+}
 
-export async function getPostData(id) {
+export async function getPostData(id: string): Promise<Posts>{
     const fullPath = path.join(postsDirectory, `${id}.md`);
     const fileContents = fs.readFileSync(fullPath, 'utf8');
 
@@ -74,12 +86,12 @@ export async function getPostData(id) {
         .use(html)
         .process(matterResult.content);
 
-    const contentHtml = processedContent.value;
+    const contentHtml = processedContent.toString();
 
     // Combine the data with the id and contentHtml
     return {
         id,
         contentHtml, // Store the HTML as-is
-        ...matterResult.data,
+        ...(matterResult.data as { date: string; title: string }),
     };
 }
